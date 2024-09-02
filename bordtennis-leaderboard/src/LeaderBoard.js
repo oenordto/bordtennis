@@ -1,50 +1,57 @@
-import UpdateScore from './UpdateScore';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { db } from './firebase'; // Anta at du allerede har konfigurert Firebase
+import { collection, getDocs } from 'firebase/firestore';
 import tabletennis from './resources/tabletennis.jpeg';
 
 function Leaderboard() {
-  const [spillerData, setSpillerData] = useState({
-    // ... initial data for spillere
-  });
+  const [spillere, setSpillere] = useState([]);
 
-  const handleUpdateScore = (spillerId, result) => {
-    const spiller = spillerData.find(s => s.id === spillerId);
-    setSpillerData(prevData => 
-      prevData.map(s => 
-        s.id === spillerId 
-          ? { 
-              ...s, 
-              matchesWon: spiller.matchesWon + (result === 'win' ? 1 : 0), 
-              matchesLost: spiller.matchesLost + (result === 'lose' ? 1 : 0) 
-            } 
-          : s
-      )
-    );
-  };
+  useEffect(() => {
+    const fetchPlayers = async () => {
+      const querySnapshot = await getDocs(collection(db, 'spiller'));
+      const playersList = querySnapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data(),
+      }));
+      // Sortere spillerne etter antall seire i synkende rekkefølge
+      const sortedPlayers = playersList.sort((a, b) => b.matchesWon - a.matchesWon);
+      setSpillere(sortedPlayers);
+    };
+
+    fetchPlayers();
+  }, []);
 
   const backgroundImageStyle = {
     backgroundImage: `url(${tabletennis})`,
-    backgroundSize: 'cover',          
-    backgroundPosition: 'center',     
-    backgroundRepeat: 'no-repeat',    
-    height: '100vh',                  
-    width: '100vw',                
-    position: 'fixed',               
+    backgroundSize: 'cover',
+    backgroundPosition: 'center',
+    backgroundRepeat: 'no-repeat',
+    height: '100vh',
+    width: '100vw',
+    position: 'fixed',
     top: 0,
     left: 0,
-    display: 'flex',                 
-    justifyContent: 'center',        
-    alignItems: 'center', 
+    display: 'flex',
+    flexDirection: 'column', // Gjør det enkelt å plassere innhold vertikalt
+    justifyContent: 'flex-start', // Start listen fra toppen
+    alignItems: 'center',
     color: 'white',
+    paddingTop: '50px', // Legg til litt padding på toppen
   };
 
   return (
     <div style={backgroundImageStyle}>
-      <UpdateScore
-        spiller="spiller1"
-        setKamperVunnet={(newValue) => handleUpdateScore('spiller1', 'win', newValue)}
-        setKamperTapt={(newValue) => handleUpdateScore('spiller1', 'lose', newValue)}
-      />
+      <h1>Leaderboard</h1>
+      <ul style={{ listStyleType: 'none', padding: 0 }}>
+        {spillere.map(spiller => (
+          <li key={spiller.id} style={{ marginBottom: '10px' }}>
+            <h2>{spiller.name}</h2>
+            <p>Seire: {spiller.matchesWon}</p>
+            <p>Tap: {spiller.matchesLost}</p>
+            <p>Total Poengsum: {spiller.totalPoints || 0}</p>
+          </li>
+        ))}
+      </ul>
     </div>
   );
 }
