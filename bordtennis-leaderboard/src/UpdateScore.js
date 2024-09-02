@@ -35,6 +35,14 @@ function UpdateScore() {
       alert('Vennligst skriv inn gyldige poengsummer');
       return;
     }
+    if (Math.abs(score1-score2) < 2) {
+      alert('Man må vinne med to poeng.');
+      return;
+    }
+    if (score1 < 11 && score2 < 11) {
+      alert('Man må ha 11 poeng for å vinne.');
+      return;
+    }
 
     const score1Int = parseInt(score1);
     const score2Int = parseInt(score2);
@@ -88,7 +96,7 @@ function UpdateScore() {
 
   return (
     <div>
-      <h1>Oppdater Poeng</h1>
+      <h1>Registrer ny match</h1>
       <div>
         <label>
           Velg Spiller 1:

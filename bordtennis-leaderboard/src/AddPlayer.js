@@ -13,10 +13,13 @@ function AddPlayer() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (firestoreInitialized) {
+    const name = prompt('Enter player name');
+    setPlayerName(name);
+
+    if (firestoreInitialized && name) {
       try {
         await addDoc(collection(db, 'spiller'), {
-          name: playerName,
+          name: name,
           matchesWon: 0,
           matchesLost: 0,
         });
@@ -32,14 +35,14 @@ function AddPlayer() {
 
   return (
     <form onSubmit={handleSubmit}>
-      <input 
+      {/* <input 
         type="text" 
         value={playerName} 
         onChange={(e) => setPlayerName(e.target.value)} 
         placeholder="Enter player name" 
         required 
-      />
-      <button type="submit">Legg til spiller</button>
+      /> */}
+      <button type="submit">Legg til ny spiller</button>
     </form>
   );
 }
