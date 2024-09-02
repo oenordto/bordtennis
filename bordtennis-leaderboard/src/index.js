@@ -11,7 +11,7 @@ root.render(
   <React.StrictMode>
     <App />
     <LeaderBoard />
-    <UpdateScore />
+
   </React.StrictMode>
 );
 
