@@ -1,21 +1,86 @@
 import React, { useState, useEffect } from 'react';
 import { db } from './firebase';
-import { collection, doc, updateDoc, getDocs } from 'firebase/firestore';
+import { collection, doc, updateDoc, getDocs, addDoc, serverTimestamp } from 'firebase/firestore';
 
-function UpdateScore({ spiller, setKamperVunnet, setKamperTapt }) {
-  const handleUpdate = async (result, playerId, currentWins, currentLosses) => {
-    if (result !== 'win' && result !== 'lose') {
-      console.error('Ugyldig resultat:', result);
+function UpdateScore() {
+  const [spillere, setSpillere] = useState([]);
+  const [player1, setPlayer1] = useState('');
+  const [player2, setPlayer2] = useState('');
+  const [score1, setScore1] = useState('');
+  const [score2, setScore2] = useState('');
+
+  useEffect(() => {
+    const fetchPlayers = async () => {
+      const querySnapshot = await getDocs(collection(db, 'spiller'));
+      const playersList = querySnapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data(),
+      }));
+      setSpillere(playersList);
+    };
+
+    fetchPlayers();
+  }, []);
+
+  const handleUpdateScore = async () => {
+    if (!player1 || !player2 || player1 === player2) {
+      alert('Vennligst velg to forskjellige spillere');
+      return;
+    }
+
+    const player1Obj = spillere.find(spiller => spiller.id === player1);
+    const player2Obj = spillere.find(spiller => spiller.id === player2);
+
+    if (!score1 || !score2 || isNaN(score1) || isNaN(score2)) {
+      alert('Vennligst skriv inn gyldige poengsummer');
+      return;
+    }
+
+    const score1Int = parseInt(score1);
+    const score2Int = parseInt(score2);
+
+    let winner = null;
+    let loser = null;
+
+    if (score1Int > score2Int) {
+      winner = player1Obj;
+      loser = player2Obj;
+    } else if (score2Int > score1Int) {
+      winner = player2Obj;
+      loser = player1Obj;
+    } else {
+      alert('Kampen endte uavgjort, ingen vinner registrert.');
       return;
     }
 
     try {
-      const playerRef = doc(collection(db, "spiller"), playerId);
-      await updateDoc(playerRef, {
-        matchesWon: currentWins + (result === 'win' ? 1 : 0),
-        matchesLost: currentLosses + (result === 'lose' ? 1 : 0),
+      // Oppdater vinnerens dokument
+      const winnerRef = doc(collection(db, 'spiller'), winner.id);
+      await updateDoc(winnerRef, {
+        matchesWon: winner.matchesWon + 1,
+        totalPoints: (winner.totalPoints || 0) + score1Int + score2Int,
+        lastPlayed: serverTimestamp()
       });
-      console.log('Spillerens score er oppdatert');
+
+      // Oppdater taperens dokument
+      const loserRef = doc(collection(db, 'spiller'), loser.id);
+      await updateDoc(loserRef, {
+        matchesLost: loser.matchesLost + 1,
+        totalPoints: (loser.totalPoints || 0) + score1Int + score2Int,
+        lastPlayed: serverTimestamp()
+      });
+
+      // Lagre kampdetaljer i "kamper" samlingen
+      await addDoc(collection(db, 'kamper'), {
+        player1: player1Obj.name,
+        player2: player2Obj.name,
+        score1: score1Int,
+        score2: score2Int,
+        winner: winner.name,
+        timestamp: serverTimestamp()
+      });
+
+      alert(`Kampen er registrert. Vinner: ${winner.name}`);
     } catch (error) {
       console.error('Feil ved oppdatering av score:', error);
     }
@@ -23,41 +88,50 @@ function UpdateScore({ spiller, setKamperVunnet, setKamperTapt }) {
 
   return (
     <div>
-      <h2>{spiller.name}</h2>
-      <p>Kamper vunnet: {spiller.matchesWon}</p>
-      <p>Kamper tapt: {spiller.matchesLost}</p>
-      <button onClick={() => handleUpdate('win', spiller.id, spiller.matchesWon, spiller.matchesLost)}>Vant</button>
-      <button onClick={() => handleUpdate('lose', spiller.id, spiller.matchesWon, spiller.matchesLost)}>Tapte</button>
-    </div>
-  );
-}
-
-function PlayerOverview() {
-  const [spillere, setSpillere] = useState([]);
-
-  useEffect(() => {
-    const fetchPlayers = async () => {
-      const querySnapshot = await getDocs(collection(db, "spiller"));
-      const playersList = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-      setSpillere(playersList);
-    };
-
-    fetchPlayers();
-  }, []);
-
-  return (
-    <div>
-      <h1>Spilleroversikt</h1>
-      {spillere.map(spiller => (
-        <UpdateScore
-          key={spiller.id}
-          spiller={spiller}
-          setKamperVunnet={() => {}}
-          setKamperTapt={() => {}}
+      <h1>Oppdater Poeng</h1>
+      <div>
+        <label>
+          Velg Spiller 1:
+          <select value={player1} onChange={e => setPlayer1(e.target.value)}>
+            <option value="">Velg spiller</option>
+            {spillere.map(spiller => (
+              <option key={spiller.id} value={spiller.id}>
+                {spiller.name}
+              </option>
+            ))}
+          </select>
+        </label>
+        <input
+          type="number"
+          placeholder="Poeng"
+          value={score1}
+          onChange={e => setScore1(e.target.value)}
         />
-      ))}
+      </div>
+
+      <div>
+        <label>
+          Velg Spiller 2:
+          <select value={player2} onChange={e => setPlayer2(e.target.value)}>
+            <option value="">Velg spiller</option>
+            {spillere.map(spiller => (
+              <option key={spiller.id} value={spiller.id}>
+                {spiller.name}
+              </option>
+            ))}
+          </select>
+        </label>
+        <input
+          type="number"
+          placeholder="Poeng"
+          value={score2}
+          onChange={e => setScore2(e.target.value)}
+        />
+      </div>
+
+      <button onClick={handleUpdateScore}>Lagre Resultat</button>
     </div>
   );
 }
 
-export default PlayerOverview;
+export default UpdateScore;

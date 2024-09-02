@@ -9,7 +9,7 @@ function App() {
     <Router>
       <Routes>
         <Route path="/" element={<Leaderboard />} />
-        <Route path="/update-score" element={<UpdateScore />} />
+
         <Route path="/add-player" element={<AddPlayer />} />
       </Routes>
     </Router>
