@@ -1,16 +1,14 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Leaderboard from './LeaderBoard';
-import UpdateScore from './UpdateScore';
-import AddPlayer from './AddPlayer';
+import Stats from './Stats';
 
 function App() {
   return (
     <Router>
       <Routes>
         <Route path="/" element={<Leaderboard />} />
-        <Route path="/update-score" element={<UpdateScore />} />
-        <Route path="/add-player" element={<AddPlayer />} />
+        <Route path="/Stats" element={<Stats />} />
       </Routes>
     </Router>
   );
