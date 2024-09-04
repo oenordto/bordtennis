@@ -66,7 +66,7 @@ function UpdateScore() {
       const winnerRef = doc(collection(db, 'spiller'), winner.id);
       await updateDoc(winnerRef, {
         matchesWon: winner.matchesWon + 1,
-        totalPoints: (winner.totalPoints || 0) + score1Int + score2Int,
+        totalPoints: (winner.totalPoints || 0) + score1Int,
         lastPlayed: serverTimestamp()
       });
 
@@ -74,7 +74,7 @@ function UpdateScore() {
       const loserRef = doc(collection(db, 'spiller'), loser.id);
       await updateDoc(loserRef, {
         matchesLost: loser.matchesLost + 1,
-        totalPoints: (loser.totalPoints || 0) + score1Int + score2Int,
+        totalPoints: (loser.totalPoints || 0) + score2Int,
         lastPlayed: serverTimestamp()
       });
 
