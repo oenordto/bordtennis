@@ -3,12 +3,10 @@ import { db } from './firebase';
 import { collection, getDocs } from 'firebase/firestore';
 import tabletennis from './resources/tabletennis.jpeg';
 import AddPlayer from './AddPlayer';
-import UpdateScore from './UpdateScore';
 import PopUp from './PopUp'
 
 function Leaderboard() {
   const [spillere, setSpillere] = useState([]);
-  const [showUpdateScore, setShowUpdateScore] = useState(false);
 
   useEffect(() => {
     const fetchPlayers = async () => {
@@ -91,25 +89,15 @@ function Leaderboard() {
     boxShadow: '0 6px 12px rgba(0, 0, 0, 0.3)',
   };
 
-  const toggleUpdateScore = () => {
-    setShowUpdateScore(prevState => !prevState);
-  };
-
   return (
     <>
       <div style={backgroundImageStyle}>
         <div style={contentStyle}>
           <h1 style={headerStyle}>Leaderboard</h1>
-          {/* <PopUp spillere={spillere}/> */}
+          <PopUp spillere={spillere}/>
           <div style={addPlayerStyle}>
             <AddPlayer />
           </div>
-          
-          <button onClick={toggleUpdateScore} style={{ marginBottom: '20px' }}>
-            {showUpdateScore ? 'Skjul Registrer ny match' : 'Registrer ny match'}
-          </button>
-
-          {showUpdateScore && <UpdateScore />}
 
           <ul style={listStyle}>
             {spillere.map(spiller => (

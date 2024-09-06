@@ -7,6 +7,7 @@ import DialogContent from '@mui/material/DialogContent';
 import DialogContentText from '@mui/material/DialogContentText';
 import DialogTitle from '@mui/material/DialogTitle';
 import DropDown from './DropDown';
+import UpdateScore from './UpdateScore'
 
 export default function PopUp({spillere}) {
   const [open, setOpen] = React.useState(false);
@@ -48,7 +49,8 @@ export default function PopUp({spillere}) {
           <DialogContentText>
             Registrer spillere og poengsum.
           </DialogContentText>
-          <DropDown spillere={spillere} navn='spiller 1'/>
+          <UpdateScore/>
+          {/* <DropDown spillere={spillere} navn='spiller 1'/>
           <DropDown spillere={spillere} navn='spiller 2'/>
           <TextField
             autoFocus
@@ -60,13 +62,13 @@ export default function PopUp({spillere}) {
             type="email"
             fullWidth
             variant="standard"
-          />
+          /> */}
         </DialogContent>
         
-        <DialogActions>
+       {/*  <DialogActions>
           <Button onClick={handleClose}>Avbryt</Button>
           <Button type="submit">Lagre</Button>
-        </DialogActions>
+        </DialogActions> */}
       </Dialog>
     </React.Fragment>
   );

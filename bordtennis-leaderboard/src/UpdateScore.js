@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { db } from './firebase';
+import { db } from './firebase'; // sørg for at Firebase er riktig konfigurert
 import { collection, doc, updateDoc, getDocs, addDoc, serverTimestamp } from 'firebase/firestore';
 
 function UpdateScore() {
@@ -11,12 +11,16 @@ function UpdateScore() {
 
   useEffect(() => {
     const fetchPlayers = async () => {
-      const querySnapshot = await getDocs(collection(db, 'spiller'));
-      const playersList = querySnapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data(),
-      }));
-      setSpillere(playersList);
+      try {
+        const querySnapshot = await getDocs(collection(db, 'spiller'));
+        const playersList = querySnapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data(),
+        }));
+        setSpillere(playersList);
+      } catch (error) {
+        console.error('Feil ved henting av spillere:', error);
+      }
     };
 
     fetchPlayers();
@@ -35,17 +39,19 @@ function UpdateScore() {
       alert('Vennligst skriv inn gyldige poengsummer');
       return;
     }
-    if (Math.abs(score1-score2) < 2) {
-      alert('Man må vinne med to poeng.');
-      return;
-    }
-    if (score1 < 11 && score2 < 11) {
-      alert('Man må ha 11 poeng for å vinne.');
-      return;
-    }
 
     const score1Int = parseInt(score1);
     const score2Int = parseInt(score2);
+
+    if (Math.abs(score1Int - score2Int) < 2) {
+      alert('Man må vinne med to poeng.');
+      return;
+    }
+
+    if (score1Int < 11 && score2Int < 11) {
+      alert('En spiller må ha minst 11 poeng for å vinne.');
+      return;
+    }
 
     let winner = null;
     let loser = null;
@@ -65,17 +71,17 @@ function UpdateScore() {
       // Oppdater vinnerens dokument
       const winnerRef = doc(collection(db, 'spiller'), winner.id);
       await updateDoc(winnerRef, {
-        matchesWon: winner.matchesWon + 1,
+        matchesWon: (winner.matchesWon || 0) + 1,
         totalPoints: (winner.totalPoints || 0) + score1Int,
-        lastPlayed: serverTimestamp()
+        lastPlayed: serverTimestamp(),
       });
 
       // Oppdater taperens dokument
       const loserRef = doc(collection(db, 'spiller'), loser.id);
       await updateDoc(loserRef, {
-        matchesLost: loser.matchesLost + 1,
+        matchesLost: (loser.matchesLost || 0) + 1,
         totalPoints: (loser.totalPoints || 0) + score2Int,
-        lastPlayed: serverTimestamp()
+        lastPlayed: serverTimestamp(),
       });
 
       // Lagre kampdetaljer i "kamper" samlingen
@@ -85,7 +91,7 @@ function UpdateScore() {
         score1: score1Int,
         score2: score2Int,
         winner: winner.name,
-        timestamp: serverTimestamp()
+        timestamp: serverTimestamp(),
       });
 
       alert(`Kampen er registrert. Vinner: ${winner.name}`);
@@ -95,12 +101,11 @@ function UpdateScore() {
   };
 
   return (
-    <div>
-      <h1>Registrer ny match</h1>
-      <div>
-        <label>
+    <div style={styles.container}>
+      <div style={styles.formGroup}>
+        <label style={styles.label}>
           Velg Spiller 1:
-          <select value={player1} onChange={e => setPlayer1(e.target.value)}>
+          <select style={styles.select} value={player1} onChange={e => setPlayer1(e.target.value)}>
             <option value="">Velg spiller</option>
             {spillere.map(spiller => (
               <option key={spiller.id} value={spiller.id}>
@@ -110,6 +115,7 @@ function UpdateScore() {
           </select>
         </label>
         <input
+          style={styles.input}
           type="number"
           placeholder="Poeng"
           value={score1}
@@ -117,10 +123,10 @@ function UpdateScore() {
         />
       </div>
 
-      <div>
-        <label>
+      <div style={styles.formGroup}>
+        <label style={styles.label}>
           Velg Spiller 2:
-          <select value={player2} onChange={e => setPlayer2(e.target.value)}>
+          <select style={styles.select} value={player2} onChange={e => setPlayer2(e.target.value)}>
             <option value="">Velg spiller</option>
             {spillere.map(spiller => (
               <option key={spiller.id} value={spiller.id}>
@@ -130,6 +136,7 @@ function UpdateScore() {
           </select>
         </label>
         <input
+          style={styles.input}
           type="number"
           placeholder="Poeng"
           value={score2}
@@ -137,9 +144,57 @@ function UpdateScore() {
         />
       </div>
 
-      <button onClick={handleUpdateScore}>Lagre Resultat</button>
+      <button style={styles.button} onClick={handleUpdateScore}>
+        Lagre Resultat
+      </button>
     </div>
   );
 }
+
+// CSS in JS for styling
+const styles = {
+  container: {
+    maxWidth: '400px',
+    margin: '0 auto',
+    padding: '20px',
+    backgroundColor: '#f9f9f9',
+    borderRadius: '8px',
+    boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)',
+  },
+  formGroup: {
+    marginBottom: '15px',
+  },
+  label: {
+    display: 'block',
+    marginBottom: '5px',
+    fontSize: '16px',
+    color: '#333',
+  },
+  select: {
+    width: '100%',
+    padding: '8px',
+    fontSize: '14px',
+    borderRadius: '4px',
+    border: '1px solid #ccc',
+  },
+  input: {
+    width: '100%',
+    padding: '8px',
+    fontSize: '14px',
+    borderRadius: '4px',
+    border: '1px solid #ccc',
+    marginTop: '10px',
+  },
+  button: {
+    width: '100%',
+    padding: '10px',
+    backgroundColor: '#007BFF',
+    color: '#fff',
+    fontSize: '16px',
+    border: 'none',
+    borderRadius: '4px',
+    cursor: 'pointer',
+  },
+};
 
 export default UpdateScore;
