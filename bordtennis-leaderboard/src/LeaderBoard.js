@@ -18,6 +18,7 @@ function Leaderboard() {
         ...doc.data(),
       }));
       // Sort players by number of wins in descending order
+      //Dummy
       const sortedPlayers = playersList.sort((a, b) => b.matchesWon - a.matchesWon);
       setSpillere(sortedPlayers);
     };
