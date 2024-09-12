@@ -55,13 +55,21 @@ function UpdateScore() {
 
     let winner = null;
     let loser = null;
+    let winnerScore = null;
+    let loserScore = null;
 
     if (score1Int > score2Int) {
       winner = player1Obj;
       loser = player2Obj;
+
+      winnerScore = score1Int;
+      loserScore = score2Int;
     } else if (score2Int > score1Int) {
       winner = player2Obj;
       loser = player1Obj;
+
+      winnerScore = score2Int;
+      loserScore = score1Int;
     } else {
       alert('Kampen endte uavgjort, ingen vinner registrert.');
       return;
@@ -72,7 +80,7 @@ function UpdateScore() {
       const winnerRef = doc(collection(db, 'spiller'), winner.id);
       await updateDoc(winnerRef, {
         matchesWon: (winner.matchesWon || 0) + 1,
-        totalPoints: (winner.totalPoints || 0) + score1Int,
+        totalPoints: (winner.totalPoints || 0) + winnerScore,
         lastPlayed: serverTimestamp(),
       });
 
@@ -80,7 +88,7 @@ function UpdateScore() {
       const loserRef = doc(collection(db, 'spiller'), loser.id);
       await updateDoc(loserRef, {
         matchesLost: (loser.matchesLost || 0) + 1,
-        totalPoints: (loser.totalPoints || 0) + score2Int,
+        totalPoints: (loser.totalPoints || 0) + loserScore,
         lastPlayed: serverTimestamp(),
       });
 
